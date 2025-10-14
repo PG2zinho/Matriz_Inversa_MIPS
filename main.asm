@@ -1,14 +1,7 @@
 .data
     colunas:        .space 4    #espaço para guardar o numero de colunas
-    linhas:         .space 4    #espaço para guardar o numero de linhas
-    matriz:         .space 400
-    matriz_inversa: .space 400 
-    quebra_linha:   .asciiz "\n"
-    espaco:         .asciiz " "
-    barra_vertical: .asciiz "|"
     final:          .asciiz "\nFinal do programa"
-    numero_colunas: .asciiz "\nDigite o numero de colunas da matriz:"
-    numero_linhas:  .asciiz "\nDigite o numero de linha da matriz:"
+    tamanho_matriz: .asciiz "\nDigite o tamanho da matriz:"
     numero:         .asciiz "\nNumero "
     matriz_lida:    .asciiz "\nMatriz lida:\n"
     matriz_iden:    .asciiz "\nMatriz Identidade:\n"
@@ -18,20 +11,23 @@
 main:
 
     li    $v0,4
-    la    $a0,numero_linhas
-    syscall
-
-    li    $v0,5
-    syscall
-    sw    $v0, linhas
-
-    li    $v0,4
-    la    $a0, numero_colunas
+    la    $a0,tamanho_matriz
     syscall
 
     li    $v0,5
     syscall
     sw    $v0, colunas
+
+    mul   $v0,$v0,$v0
+    sll   $a0,$v0,2
+
+    li    $v0,9
+    syscall
+    move  $s0,$v0
+
+    li    $v0,9
+    syscall
+    move  $s1,$v0
 
     jal Ler_matriz
 
@@ -54,7 +50,7 @@ main:
 Ler_matriz:
 
     lw    $t1,colunas
-    la    $a1,matriz
+    move   $a1,$s0
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
 
@@ -82,7 +78,7 @@ Ler_matriz:
         addi  $sp,$sp,-4
         sw    $ra,0($sp)
 
-        la    $a1,matriz
+        move    $a1,$s0
 
         li    $v0,4
         la    $a0,matriz_lida
@@ -106,12 +102,12 @@ Imprimir_matriz:
 
     inicio_matriz:
 
-        li    $v0,4
-        la    $a0,barra_vertical
+        li    $v0,11
+        addi  $a0,$zero,124
         syscall
 
-        li    $v0,4
-        la    $a0,espaco
+        li    $v0,11
+        addi  $a0,$zero,32
         syscall
 
     le_matriz:
@@ -120,8 +116,8 @@ Imprimir_matriz:
         lw    $a0,0($a1)
         syscall
 
-        li    $v0,4
-        la    $a0,espaco
+        li    $v0,11
+        addi  $a0,$zero,32
         syscall
 
 
@@ -133,12 +129,12 @@ Imprimir_matriz:
 
     end_loop_matriz:
 
-        li    $v0,4
-        la    $a0,barra_vertical
+        li    $v0,11
+        addi  $a0,$zero,124
         syscall
 
-        li    $v0,4
-        la    $a0,quebra_linha
+        li    $v0,11
+        addi  $a0,$zero,10
         syscall
 
         and   $t4,$zero,$zero
@@ -153,7 +149,7 @@ Imprimir_matriz:
 Construir_Inversa:
 
     lw    $t1,colunas
-    la    $a1,matriz_inversa
+    move  $a1,$s1
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
     and   $t5,$zero,$zero
@@ -188,7 +184,7 @@ Construir_Inversa:
         addi  $sp,$sp,-4
         sw    $ra,0($sp)
 
-        la    $a1,matriz_inversa
+        move    $a1,$s1
 
         jal   Imprimir_matriz
 
@@ -202,11 +198,11 @@ Construir_Inversa:
 Gauss_Jordan:
 
     lw    $t1,colunas
-    la    $a1,matriz
-    la    $a2,matriz_inversa
+    move  $a1,$s0
+    move  $a2,$s1
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
-    
+
 
 
 
