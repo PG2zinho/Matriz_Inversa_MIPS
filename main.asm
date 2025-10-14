@@ -56,9 +56,9 @@ Ler_matriz:
 
     le_entrada:
 
-        li    $v0,5
+        li    $v0,6
         syscall
-        sw    $v0,0($a1)
+        s.s   $f0,0($a1)
 
         addi  $a1,$a1,4
         addi  $t4,$t4,1
@@ -113,7 +113,7 @@ Imprimir_matriz:
     le_matriz:
 
         li    $v0,1
-        lw    $a0,0($a1)
+        l.s    $a0,0($a1)
         syscall
 
         li    $v0,11
