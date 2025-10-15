@@ -1,10 +1,11 @@
 .data
     colunas:        .space 4    #espaço para guardar o numero de colunas
     final:          .asciiz "\nFinal do programa"
-    tamanho_matriz: .asciiz "\nDigite o tamanho da matriz:"
+    tamanho_matriz: .asciiz "Digite o tamanho da sua matriz quadrática:"
     numero:         .asciiz "\nNumero "
     matriz_lida:    .asciiz "\nMatriz lida:\n"
     matriz_iden:    .asciiz "\nMatriz Identidade:\n"
+    posicao_matriz: .asciiz "posição "
 .text 
 .globl main
 
@@ -55,6 +56,23 @@ Ler_matriz:
     and   $t4,$zero,$zero
 
     le_entrada:
+        
+        li    $v0,4
+        la    $a0,posicao_matriz
+        syscall
+
+        li    $v0,1
+        add   $a0,$zero,$t3
+        addi  $a0,$a0,1
+        syscall
+
+        add   $a0,$zero,$t4
+        addi  $a0,$a0,1
+        syscall
+
+        li    $v0,11
+        addi  $a0,$zero,58
+        syscall
 
         li    $v0,6
         syscall
