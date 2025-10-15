@@ -50,7 +50,7 @@ main:
 Ler_matriz:
 
     lw    $t1,colunas
-    move   $a1,$s0
+    move  $a1,$s0
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
 
@@ -112,8 +112,8 @@ Imprimir_matriz:
 
     le_matriz:
 
-        li    $v0,1
-        l.s    $a0,0($a1)
+        li    $v0,2
+        l.s   $f12,0($a1)
         syscall
 
         li    $v0,11
@@ -159,12 +159,14 @@ Construir_Inversa:
 
         beq   $t3,$t4,UM
 
-        sw    $zero,0($a1)
+        li.s  $f0,0.0
+        s.s   $f0,0($a1)
 
         j     CONTINUA
 
         UM:
-            sw    $t5,0($a1)
+            li.s  $f0,1.0
+            s.s   $f0,0($a1)
 
         CONTINUA:
             addi  $a1,$a1,4
