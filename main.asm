@@ -6,6 +6,8 @@
     matriz_lida:    .asciiz "\nMatriz lida:\n"
     matriz_iden:    .asciiz "\nMatriz Identidade:\n"
     posicao_matriz: .asciiz "posição "
+    erro1:          .asciiz "\nPara uma matriz possuir uma inversa, é necessário que sua diagonal não possua zero!\n"
+    erro2:          .asciiz "\nA matriz deve ter um tamanho maior que 1\n"
 .text 
 .globl main
 
@@ -17,6 +19,10 @@ main:
 
     li    $v0,5
     syscall
+
+    slti  $t0,$v0,2
+    bne   $t0,$zero,tamanho_invalido
+
     sw    $v0, colunas
 
     mul   $v0,$v0,$v0
@@ -45,6 +51,17 @@ main:
 
     li   $v0,10
     syscall
+
+#-----------------------------------------------------------------------------------------------
+
+tamanho_invalido:
+
+    li    $v0,4
+    la    $a0,erro2
+    syscall
+
+    j    main
+
 
 
 #-----------------------------------------------------------------------------------------------
@@ -76,6 +93,10 @@ Ler_matriz:
 
         li    $v0,6
         syscall
+
+        beq   $t3,$t4,verifica
+    
+    le_entrada2:
         s.s   $f0,0($a1)
 
         addi  $a1,$a1,4
@@ -110,7 +131,17 @@ Ler_matriz:
         and   $a1,$zero,$zero
 
         jr    $ra   
+    
+    verifica:
+        li.s    $f2,0.0
+        c.eq.s  $f0,$f2
+        bc1f    le_entrada2
 
+        li    $v0,4
+        la    $a0,erro1
+        syscall 
+
+        j     le_entrada
 #-----------------------------------------------------------------------------------------------
 Imprimir_matriz:
 
@@ -222,6 +253,7 @@ Gauss_Jordan:
     move  $a2,$s1
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
+    
 
 
 
