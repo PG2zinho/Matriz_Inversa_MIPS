@@ -246,6 +246,7 @@ Construir_Inversa:
 
         jr    $ra    
 
+#----------------------------------------------------------------------------------------------------
 Gauss_Jordan:
 
     lw    $t1,colunas
@@ -253,6 +254,50 @@ Gauss_Jordan:
     move  $a2,$s1
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
+    and   $t5,$zero,$zero
+    and   $t6,$zero,$zero
+    and   $t7,$zero,$zero
+    and   $t8,$zero,$zero
+
+
+    inicio_gaus:
+        l.s   $f2,0($a1)
+
+    inicio:
+        
+    
+        l.s   $f3,0($a1)
+        l.s   $f4,0($a2)
+
+
+        div.s $f5,$f3,$f2
+        div.s $f6,$f4,$f2
+
+        addi  $sp,$sp,-8
+        addi  $t7,$t7,8
+
+        s.s   $f5,0($sp)
+        s.s   $f6,4($sp)
+
+        s.s   $f5,0($a1)
+        s.s   $f6,0($a2)
+
+        beq   $t4,$t1,end_div
+
+        addi  $t4,$t4,1
+        addi  $a1,$a1,4
+        addi  $a2,$a2,4
+
+        j     inicio
+    
+    end_div:
+
+
+
+
+
+
+
     
 
 
