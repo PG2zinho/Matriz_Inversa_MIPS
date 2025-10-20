@@ -1,6 +1,6 @@
 .data
     colunas:        .space 4    #espaço para guardar o numero de colunas
-    final:          .asciiz "\nFinal do programa"
+    final:          .asciiz "\nFinal do programa\n"
     tamanho_matriz: .asciiz "Digite o tamanho da sua matriz quadrática:"
     numero:         .asciiz "\nNumero "
     matriz_lida:    .asciiz "\nMatriz lida:\n"
@@ -64,10 +64,10 @@ main:
 
     jal Gauss_Jordan           #chamo a função que calcula a matriz inversa               
 
+final_programa:
     li   $v0, 4                #imprimo a mensagem de final do programa
     la   $a0, final
     syscall
-
 
     li   $v0,10                 #encerro o programa
     syscall
@@ -129,136 +129,138 @@ Ler_matriz:
 
         and   $t4,$zero,$zero           #Zero meu contador j ($t4)
         addi  $t3,$t3,1                 #Adiciono 1 em i ($t3)
-        beq   $t3,$t0,end_for1_leitura  #
-        j     inicio_le_entrada
+        beq   $t3,$t0,end_for1_leitura  #pulo para o label end_for1_leitura caso i seja igual ao valor em $t0
+        j     inicio_le_entrada         #pulo para o label inicio_le_entrada incondicionalmente
 
     end_for1_leitura:
 
-        addi  $sp,$sp,-4
-        sw    $ra,0($sp)
+        addi  $sp,$sp,-4                #Crio espaço na pilha para guardar o valor de $ra
+        sw    $ra,0($sp)                #Guardo o valor de $ra na pilha
 
-        move    $a1,$s0
+        move    $a1,$s0                 #Passo o endereço de bloco de memória onde está a matriz lida
 
-        li    $v0,4
+        li    $v0,4                     #imprimo a mensagem de matriz lida
         la    $a0,matriz_lida
         syscall
 
-        jal   Imprimir_matriz
+        jal   Imprimir_matriz           #chamo a função para imprimir a matriz lida
 
-        lw    $ra,0($sp)
+        lw    $ra,0($sp)                #Recupero o valor de $ra da pilha
         addi  $sp,$sp,4
 
-        jr    $ra   
+        jr    $ra                       #retorno da para a main
 #-----------------------------------------------------------------------------------------------
 Imprimir_matriz:
 
-    lw    $t0,colunas
+    lw    $t0,colunas                   #Carrega o numero  de colunas/linhas da matriz
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
 
     inicio_matriz:
 
-        li    $v0,11
+        li    $v0,11                     #imprimo o caractere de barra "|"
         addi  $a0,$zero,124
         syscall
 
-        li    $v0,11
+        li    $v0,11                     #imprimo um espaço em branco, para deixar a matriz bem formatada
         addi  $a0,$zero,32
         syscall
 
     le_matriz:
 
-        li    $v0,2
+        li    $v0,2                       #imprimo o valor que no endereço de memória que está sendo apontado por $a1
         l.s   $f12,0($a1)
         syscall
 
-        li    $v0,11
+        li    $v0,11                      #imprimo mais um espaço em branco
         addi  $a0,$zero,32
         syscall
 
 
-        addi  $a1,$a1,4
-        addi  $t4,$t4,1
+        addi  $a1,$a1,4                  #passo para o proximo elemento da matriz
+        addi  $t4,$t4,1                  #incremento o contador j ($t4)
 
-        beq   $t4,$t0,end_loop_matriz
-        j     le_matriz
+        beq   $t4,$t0,end_loop_matriz    #caso j seja igual ao valor em $t0, pulo para o label end_loop_matriz
+        j     le_matriz                  #pulo incondicionalmente para o label le_matriz
 
     end_loop_matriz:
 
-        li    $v0,11
+        li    $v0,11                     #imprimo o caractere de barra "|"
         addi  $a0,$zero,124
         syscall
 
-        li    $v0,11
+        li    $v0,11                     #imprimo uma nova linha
         addi  $a0,$zero,10
         syscall
 
-        and   $t4,$zero,$zero
-        addi  $t3,$t3,1
-        beq   $t3,$t0,end_for_impressao
-        j     inicio_matriz
+        and   $t4,$zero,$zero             #zero o contador j ($t4)
+        addi  $t3,$t3,1                   #incremento o contador i ($t3)
+        beq   $t3,$t0,end_for_impressao   #pulo para o label end_for_impressao caso i seja igual ao valor em $t0
+        j     inicio_matriz               #pulo incondicionalmente para o label inicio_matriz
 
     end_for_impressao:
 
-        jr    $ra    
+        jr    $ra                         #retorno da função para a main ou para a função que a chamou
 #-----------------------------------------------------------------------------------------------
 Construir_Identidade:
 
-    lw    $t0,colunas       
+    #Inicialização de variáveis
+    lw    $t0,colunas                     
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
     and   $t5,$zero,$zero
     addi  $t5,$t5,1
-    li.s  $f0,0.0
-    li.s  $f1,1.0
+    li.s  $f0,0.0                  #registrador reservado para armazenar o valor 0.0
+    li.s  $f1,1.0                  #registrador reservado para armazenar o valor 1.0
 
+    #loop principal para construir a matriz identidade
     loop_identidade:
 
-        beq   $t3,$t4,UM
+        beq   $t3,$t4,UM        #Se i == j, pula para a label "UM" para armazenar 1.0 na posição correspondente
 
-        s.s   $f0,0($a1)
+        s.s   $f0,0($a1)        #Senão, armazeno 0.0
 
-        j     CONTINUA
+        j     CONTINUA          #Pula para o label "CONTINUA" incondicionalmente
 
         UM:
-            s.s   $f1,0($a1)
+            s.s   $f1,0($a1)    #Armazeno 1.0 na posição correspondente
 
     CONTINUA:
 
-        addi  $a1,$a1,4
-        addi  $t4,$t4,1
-
-        beq   $t4,$t0,end_for2_identidade
-        j     loop_identidade
+        addi  $a1,$a1,4                     #Passo para o próximo elemento da matriz identidade
+        addi  $t4,$t4,1                     #Incremento o contador j ($t4)
+ 
+        beq   $t4,$t0,end_for2_identidade   #Se j == N, pula para o label end_for2_identidade
+        j     loop_identidade               #Pula incondicionalmente para o label "loop_identidade"
 
     end_for2_identidade:
 
-        and   $t4,$zero,$zero
-        addi  $t3,$t3,1
+        and   $t4,$zero,$zero               #Zera o contador j ($t4)
+        addi  $t3,$t3,1                     #Incremento o contador i ($t3)
 
-        beq   $t3,$t0,end_for1_identidade
-        j     loop_identidade
+        beq   $t3,$t0,end_for1_identidade   #Se i == N, pula para o label end_for1_identidade
+        j     loop_identidade               #Pula incondicionalmente para o label "loop_identidade"
 
     end_for1_identidade:
 
-        addi  $sp,$sp,-4
-        sw    $ra,0($sp)
+        addi  $sp,$sp,-4                   #Crio espaço na pilha para guardar o retorno da main
+        sw    $ra,0($sp)                   #Guardo o valor de $ra na pilha
 
-        move    $a1,$s1
+        move    $a1,$s1                    #Passo o endereço do bloco de memória onde está a matriz identidade
 
-        jal   Imprimir_matriz
+        jal   Imprimir_matriz              #chamo a função para imprimir a matriz identidade
 
-        lw    $ra,0($sp)
-        addi  $sp,$sp,4
+        lw    $ra,0($sp)                   #Recupero o valor de $ra da pilha
+        addi  $sp,$sp,4                    #Libero o espaço da pilha
 
-        jr    $ra    
+        jr    $ra                          #retorno da função para a main
 
-#-----------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------q-------------------
 Gauss_Jordan:
     lw    $t0, colunas      #Carrego a quantidade de colunas que a matriz tem
     and   $t1,$zero,$zero   #Registrador responsavel por monter o controle do looping principal i
 
-    # Registradores temporários,que são usados para calcular endereços ou loops internos
+    # Inicialização dos registradores temporários
     and   $t2,$zero,$zero   
     and   $t3,$zero,$zero
     and   $t4,$zero,$zero
@@ -266,12 +268,12 @@ Gauss_Jordan:
     and   $t6,$zero,$zero
     and   $t7,$zero,$zero
     and   $t8,$zero,$zero
-    li.s  $f1,0.0           #registrador reservado para fazer compações de c.eq.s com zero
+    li.s  $f1,1.0e-6                    #registrador reservado para fazer compações de c.lt.s com numeros muitos proximos de zero
     
     loop_linha_gauss:
-        bge    $t1, $t0,end_gauss #Se i >= N, o processo terminou. Pula para imprimir.
+        bge    $t1, $t0,end_gauss       #Se i >= N, o processo terminou. Pula para imprimir.
 
-       #Calcula endereço de A[i][i], o pivo inicial
+       #Calcula o endereço do pivo A[i][i]
         mul    $t2,$t1, $t0    #$t2 = i * N
         add    $t2,$t2, $t1    #$t2 = i * N + i
         sll    $t2,$t2, 2      #$t2 = (i * N + i) * 4
@@ -288,7 +290,7 @@ Gauss_Jordan:
 
         bge    $t2, $t0, pivo_maior  #caso o contador for mairo que o tamanho da N da matriz, ir para o label pivo_maior
 
-        #Calcula o endereço de do proximo pivo
+        #Calcula o endereço do proximo pivo A[k][i]
         mul    $t4, $t2, $t0    #$t4 = k * N
         add    $t4, $t4, $t1    #$t4 = (k * N) + i
         sll    $t4, $t4, 2      #$t4 = (k * N + i) * 4
@@ -312,7 +314,7 @@ Gauss_Jordan:
     pivo_maior:
         beq     $t8, $t1, sem_troca_linha   #verifica se a linha que possui o maior pivo é na mesma linha inicial, caso for, não irá ter troca de linnha 
 
-        c.eq.s  $f8, $f1                    #verifico se meu maior pivo é 0.0, caso for, quer dizer que a matriz não possui inversa
+        c.lt.s  $f8, $f1                    #verifico se o valor do meu maior pivo é muito proximo de zero, caso for, quer dizer que a matriz não possui inversa
         bc1t    Matriz_nao_invertivel       #pulo para o rotulo de erro
 
         and     $t2,$zero,$zero             #reinicio meu contador
@@ -321,7 +323,7 @@ Gauss_Jordan:
 
         bge     $t2, $t0, sem_troca_linha   #Se j >= N, quer dizer que a linha inteira foi trocada
         
-        #calcula o endereço de A[i][j]
+        #calcula o endereço da linha A[i][j] que será trocada
         mul     $t3, $t1, $t0       #$t3 = i * N
         add     $t3, $t3, $t2       #$t3 = (i * N) + j
         sll     $t3, $t3, 2         #$t3 = ((i * N ) + j) * 4
@@ -329,7 +331,7 @@ Gauss_Jordan:
         
         l.s     $f2, 0($t4)         #Armazena o valor que está no endereço apontado por $t4
 
-        #Calcula o endereço da linha A[i][j], em que o maior pivo está localizado
+        #Calcula o endereço da linha A[maior_pivo][j] que será trocada
         mul     $t5, $t8, $t0       #$t5 = i (do maior pivo) * N
         add     $t5, $t5, $t2       #$t5 = (i * N) + j
         sll     $t5, $t5, 2         #$t5 = ((i * N) + j) * 4
@@ -355,7 +357,8 @@ Gauss_Jordan:
 
     sem_troca_linha:
     ###
-        c.eq.s  $f7, $f1                #faz uma nova verificação, por  segurança, se a matriz irá possuir uma inversa
+        abs.s   $f8,$f7                 #Armazena o valor absoluto do pivo em $f8, para fazer a verificação de se a matriz possui inversa ou não
+        c.lt.s  $f8, $f1                #faz uma nova verificação, por  segurança, se a matriz irá possuir uma inversa
         bc1t    Matriz_nao_invertivel   #caso a condição for verdadeira, pula para o tratamento de erro
 
         and   $t2,$zero,$zero           #zera o meu contador, para ser reutilizado
@@ -363,6 +366,7 @@ Gauss_Jordan:
     norm_loop:
         bge     $t2, $t0, end_norm   #vejo se o contador $t2 está maior que $t0, caso estiver, quer dizer que o looping de normalização acabou e pula para o termino do loop
         
+        #Calcula o endereço de A[i][j]
         mul     $t3, $t1, $t0       #i*N
         add     $t3, $t3, $t2       #i*N + j
         sll     $t3, $t3, 2         #Multiplico o resultado que está em $t3 por 4, para obter a posição do elemento que quero dividir na matriz 
@@ -391,7 +395,7 @@ Gauss_Jordan:
         
         beq     $t6, $t1, end_elim    # Se k == i, quer dizer que k está na mesma linha do pivo, portanto deve pular a linha
 
-        #Calcula o endereço de A[k][i]
+        #Calcula o fator = A[k][i] / pivo
         mul     $t2, $t6, $t0           #$t2 = k * N
         add     $t2, $t2, $t1           #$t2 = (k * N) + i
         sll     $t2, $t2, 2             #$t2 = ((k * N) + i) * 4
@@ -419,7 +423,7 @@ Gauss_Jordan:
         
         l.s     $f4, 0($t8)           #carrega o valor que está no endereço apontado por $t8 em $f4
 
-        #Executar A[k][j] = A[k][j] - (fator * A[i][j])
+        #Calcular o novo valor de A[k][j] = A[k][j] - fator * A[i][j]
         mul.s   $f5, $f3, $f4       #$f5 = fator * A[i][j]
         sub.s   $f2, $f2, $f5       #f2 = A [k][j]
         s.s     $f2, 0($t5)         #Salva novo valor em A[k][j]
@@ -430,6 +434,7 @@ Gauss_Jordan:
         add     $t8, $a2, $t9     #offset $t9, ja calculado anteriormente 
         l.s     $f4, 0($t8)       #$f4 = I[i][j]
 
+        #Calcular o novo valor de I[k][j] = I[k][j] - fator * I[i][j]
         mul.s   $f5, $f3, $f4     #$f5 = fator * I[i][j]
         sub.s   $f2, $f2, $f5     #$f2 = I[k][j] - (fator * I[i][j])
         s.s     $f2, 0($t5)       #Guarda no endereço de I[k][j]
@@ -445,39 +450,40 @@ Gauss_Jordan:
         addi    $t1, $t1, 1         #incrementa o contador i
         j       loop_linha_gauss    #pula para o começo do algoritmo 
 
-    # --- Rotinas de finalização da função ---
     end_gauss:
 
-        addi  $sp,$sp,-4
-        sw    $ra,0($sp)
+        addi  $sp,$sp,-4            #Abro espaço para guardar o valor de $ra (retorno para a main)
+        sw    $ra,0($sp)            #Guardo o valor de $ra na pilha
 
-        move  $a1,$s1
+        move  $a1,$s1               #Passo o endereço do bloco de memória onde está a matriz inversa
 
-        jal   Imprimir_matriz
+        jal   Imprimir_matriz       #chamo a função para imprimir a matriz inversa
 
-        move  $a1,$s1                                         
-        move  $a2,$s2   
+        move  $a1,$s1               #Passo o endereço do bloco de memória onde está a matriz lida                         
+        move  $a2,$s2               #Passo o endereço do bloco de memória onde está a cópia da matriz lida
 
-        li    $v0,4
+        li    $v0,4                 #imprimo a mensagem de matriz A vezes sua inversa
         la    $a0,matriz_recons
         syscall      
 
-        jal   Reconstroi_matriz
+        jal   Reconstroi_matriz     #chamo a função para reconstruir a matriz
 
-        lw    $ra,0($sp)
+        lw    $ra,0($sp)            #Recupero o valor de $ra da pilha
         addi  $sp,$sp,4
 
-        jr    $ra
+        jr    $ra                   #retorno da função para a main
 
     Matriz_nao_invertivel:
-        li      $v0, 4
+        li      $v0, 4              #imprimo a mensagem de erro de matriz não invertivel
         la      $a0, erro3
         syscall
-        jr      $ra
+
+        jr      $ra                 #retorno da função para a main
 
 #--------------------------------------------------------------------------------------------------------------------------
 Reconstroi_matriz:
 
+    #Inicialização de variáveis
     lw    $t0,colunas
     and   $t1,$zero,$zero   #Meu i = 0
     and   $t2,$zero,$zero   #Meu j = 0
@@ -489,92 +495,99 @@ Reconstroi_matriz:
     and   $t8,$zero,$zero
     and   $t9,$zero,$zero
     
-    inicio_reconstroi:
-        bge   $t1,$t0,end_reconstroi
-        and   $t2,$zero,$zero
+    #Loop principal para reconstruir a matriz
+    inicio_reconstroi:                
+        bge   $t1,$t0,end_reconstroi   #Se i >= N, termina o processo de reconstrução da matriz
+        and   $t2,$zero,$zero          #Zera o contador j ($t2)
 
     loop_reconstroi:
 
-        bge   $t2,$t0,prox_iteracao
-        and   $t3,$zero,$zero
-        li.s  $f4,0.0
+        bge   $t2,$t0,prox_iteracao   #Se j >= N, vai para a próxima iteração do loop principal
+        and   $t3,$zero,$zero         #Zera o contador k ($t3)
+        li.s  $f4,0.0                 #Zera o acumulador de soma
 
         multiplica: 
 
-            bge   $t3,$t0,end_multiplica
+            bge   $t3,$t0,end_multiplica   #Se k >= N, termina o processo de multiplicação
             
-            mul   $t4,$t1,$t0
-            add   $t4,$t4,$t3
-            sll   $t4,$t4,2
-            add   $t5,$a1,$t4
+            #Calculo o endereço de A[i][k]
+            mul   $t4,$t1,$t0          #$t4 = i * N
+            add   $t4,$t4,$t3          #$t4 = (i * N) + k
+            sll   $t4,$t4,2            #$t4 = ((i * N) + k) * 4
+            add   $t5,$a1,$t4          #$t5 = endereço do valor A[i][k]
 
-            l.s   $f2,0($t5)
+            l.s   $f2,0($t5)           #Carrego o valor de A[i][k] em $f2
 
-            mul   $t6,$t3,$t0
-            add   $t6,$t6,$t2
-            sll   $t6,$t6,2
-            add   $t7,$a2,$t6
+            #Calculo o endereço de B[k][j]
+            mul   $t6,$t3,$t0         #$t6 = k * N
+            add   $t6,$t6,$t2         #$t6 = (k * N) + j
+            sll   $t6,$t6,2           #$t6 = ((k * N) + j) * 4
+            add   $t7,$a2,$t6         #$t7 = endereço do valor B[k][j]
 
-            l.s   $f3,0($t7)
+            l.s   $f3,0($t7)          #Carrego o valor de B[k][j] em $f3
 
-            mul.s $f3,$f2,$f3
-            add.s $f4,$f4,$f3
+            mul.s $f3,$f2,$f3         #Multiplico A[i][k] por B[k][j]
+            add.s $f4,$f4,$f3         #Acumulo a soma na variável $f4
 
-            addi  $t3,$t3,1
+            addi  $t3,$t3,1          #Incremento o contador k
 
-            j     multiplica
+            j     multiplica         #pulo para o começo do rotulo multiplica
 
         end_multiplica:
 
+            #Armazeno o valor calculado na pilha temporariamente
             addi  $sp,$sp,-4
             addi  $t8,$t8,1
 
-            s.s   $f4,($sp)
+            
+            s.s   $f4,($sp)          #Guardo o valor da soma na pilha
 
-            addi  $t2,$t2,1
+            addi  $t2,$t2,1          #Incremento o contador j
 
-            j     loop_reconstroi
+            j     loop_reconstroi    #pulo para o começo do rotulo loop_reconstroi
 
     prox_iteracao:
 
-        addi  $t1,$t1,1
+        addi  $t1,$t1,1              #Incremento o contador i
         j     inicio_reconstroi
 
     end_reconstroi:
+        
+        #Mover os valores da pilha para o bloco de memória da matriz reconstruida
+        move  $a1,$s0                #Passo o endereço do bloco de memória onde ficará a matriz reconstruida
+        and   $t1,$zero,$zero        #zero o contador i ($t1)
+        and   $t2,$zero,$zero        #zero o contador j ($t2)    
 
-        move  $a1,$s0
-        and   $t1,$zero,$zero
-        and   $t2,$zero,$zero
-        add   $t3,$t8,$zero
-
-        addi  $t9,$t8,-1
-        sll   $t9,$t9,2
-        add   $a1,$a1,$t9
+        addi  $t9,$t8,-1             #Diminua um do contador total de elementos para usar como offset
+        sll   $t9,$t9,2              #multiplico por 4 para usar como offset
+        add   $a1,$a1,$t9            #Ajusto o ponteiro $a1 para o fim do bloco de memória da matriz reconstruida
 
     insere_for1:
-        bge   $t1,$t8,end_function
-        and   $t2,$zero,$zero
+        bge   $t1,$t8,end_function  #Se i >= total de elementos, termina o processo de inserção
+        and   $t2,$zero,$zero       #zero o contador j ($t2)
 
-        l.s   $f2,0($sp)
+        l.s   $f2,0($sp)            #Carrego o valor da pilha para o registrador $f2
 
-        s.s   $f2,0($a1)
+        s.s   $f2,0($a1)           #Insiro o valor no bloco de memória da matriz reconstruida
 
+        #Atualização dos ponteiros e contadores
         addi  $a1,$a1,-4
         addi  $sp,$sp,4
         addi  $t1,$t1,1
 
         j    insere_for1
+
     end_function:
+ 
+        addi  $sp,$sp,-4            #Crio espaço na pilha para guardar o valor de $ra
+        sw    $ra,0($sp)            #Guardo o valor de $ra na pilha
 
-        addi  $sp,$sp,-4
-        sw    $ra,0($sp)
+        move  $a1,$s0               #Passo o endereço do bloco de memória onde está a matriz reconstruida
 
-        move  $a1,$s0
+        jal Imprimir_matriz         #chamo a função para imprimir a matriz reconstruida
 
-        jal Imprimir_matriz
+        lw   $ra,0($sp)             #Recupero o valor de $ra da pilha
+        addi $sp,$sp,4              #Libero o espaço da pilha
 
-        lw   $ra,0($sp)
-        addi $sp,$sp,4
-
-        jr    $ra
+        jr    $ra                   #retorno da função para a main ou para a função que a chamou
 
